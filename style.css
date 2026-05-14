@@ -135,7 +135,9 @@ header {
   font-optical-sizing: auto;
   display: flex; align-items: center; gap: 8px;
 }
-.logo span { color: var(--green); }
+.logo-text  { display: inline-flex; }
+.logo-green { color: var(--green); }
+.logo-white { color: #ffffff; }
 .header-actions { display: flex; align-items: center; gap: 12px; }
 .user-avatar {
   width: 34px; height: 34px; border-radius: 50%;
