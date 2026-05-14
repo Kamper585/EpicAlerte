@@ -345,6 +345,10 @@ footer a:hover{color:var(--text-dim)}
       <!-- PRODUCTS -->
       <div class="screen" id="screen-products">
         <div class="page-header"><div><div class="page-title">Mes produits 🛒</div><div class="page-subtitle">Gérez votre liste de suivi de prix</div></div></div>
+        <div id="firestore-warning" class="hidden" style="background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.3);border-radius:var(--radius-sm);padding:14px 18px;margin-bottom:16px;font-size:.85rem;color:var(--gold);display:flex;align-items:flex-start;gap:10px">
+          <i class="fas fa-exclamation-triangle" style="margin-top:2px;flex-shrink:0"></i>
+          <span>Erreur Firestore — vérifiez que vos <strong>règles de sécurité</strong> autorisent l'écriture (<a href="https://console.firebase.google.com" target="_blank" style="color:var(--gold);text-decoration:underline">console.firebase.google.com</a> → Firestore → Règles). En mode test, collez : <code style="background:rgba(0,0,0,.2);padding:2px 5px;border-radius:3px">allow read, write: if true;</code></span>
+        </div>
         <div class="add-product-form">
           <h3>Ajouter un produit</h3>
           <div class="form-row">
@@ -419,7 +423,7 @@ footer a:hover{color:var(--text-dim)}
 // ╔═══════════════════════════════════════════════════════════════╗
 // ║  COLLEZ ICI VOTRE CONFIG FIREBASE                            ║
 // ╚═══════════════════════════════════════════════════════════════╝
-const firebaseConfig = {
+  const firebaseConfig = {
     apiKey: "AIzaSyDCvyJnMiF80IFE9IKQKyKOFoiCre3sQY8",
     authDomain: "projet-ecoaubaine.firebaseapp.com",
     databaseURL: "https://projet-ecoaubaine-default-rtdb.firebaseio.com",
@@ -583,19 +587,35 @@ async function addProduct() {
   const thr  = parseFloat(document.getElementById('prod-threshold').value);
   if (!name) { toast('Entrez le nom du produit.', 'error'); return; }
   if (isNaN(thr)||thr<=0) { toast('Entrez un prix seuil valide.', 'error'); return; }
-  const ref = await addDoc(collection(db,'users',currentUser.uid,'products'), { name, threshold:thr });
-  userProducts.push({ id:ref.id, name, threshold:thr, onSale:false });
-  document.getElementById('prod-name').value = '';
-  document.getElementById('prod-threshold').value = '';
-  renderProducts(); updateStats();
-  toast(`"${name}" ajouté ! ✅`, 'success');
+  if (!currentUser) { toast('Vous devez être connecté.', 'error'); return; }
+  const btn = document.getElementById('btn-add-product');
+  btn.innerHTML = '<span class="loader"></span>'; btn.disabled = true;
+  try {
+    const ref = await addDoc(collection(db,'users',currentUser.uid,'products'), { name, threshold:thr });
+    userProducts.push({ id:ref.id, name, threshold:thr, onSale:false });
+    document.getElementById('prod-name').value = '';
+    document.getElementById('prod-threshold').value = '';
+    renderProducts(); updateStats();
+    toast(`"${name}" ajouté ! ✅`, 'success');
+  } catch(e) {
+    console.error('addProduct error:', e);
+    toast(`Erreur Firestore : ${e.message}`, 'error');
+    document.getElementById('firestore-warning').classList.remove('hidden');
+  } finally {
+    btn.innerHTML = '<i class="fas fa-plus"></i> Ajouter'; btn.disabled = false;
+  }
 }
 async function deleteProduct(id, name) {
   if (!confirm(`Supprimer "${name}" ?`)) return;
-  await deleteDoc(doc(db,'users',currentUser.uid,'products',id));
-  userProducts = userProducts.filter(p=>p.id!==id);
-  renderProducts(); updateStats();
-  toast(`"${name}" supprimé.`, 'info');
+  try {
+    await deleteDoc(doc(db,'users',currentUser.uid,'products',id));
+    userProducts = userProducts.filter(p=>p.id!==id);
+    renderProducts(); updateStats();
+    toast(`"${name}" supprimé.`, 'info');
+  } catch(e) {
+    console.error('deleteProduct error:', e);
+    toast(`Erreur : ${e.message}`, 'error');
+  }
 }
 function renderProducts() {
   const el = document.getElementById('products-list');
@@ -717,6 +737,7 @@ function showScreen(name) {
   document.getElementById(`screen-${name}`)?.classList.add('active');
   document.querySelector(`.nav-item[data-screen="${name}"]`)?.classList.add('active');
   if (name==='settings') renderSettings();
+  if (name==='products') renderProducts();
 }
 
 function renderSettings() {
