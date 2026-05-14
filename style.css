@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   ÉcoAubaine — style.css
+   ÉpicAlerte — style.css
    Thème : vert forêt + or doux, mode sombre
 ═══════════════════════════════════════════════════════════ */
 
@@ -20,8 +20,8 @@
   --red:        #ef4444;
   --radius:     14px;
   --radius-sm:  8px;
-  --font-head:  'Syne', sans-serif;
-  --font-body:  'DM Sans', sans-serif;
+  --font-head:  'Bricolage Grotesque', sans-serif;
+  --font-body:  'Manrope', sans-serif;
   --tr:         0.2s ease;
 }
 
@@ -33,8 +33,10 @@ body {
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
-  line-height: 1.6;
+  line-height: 1.65;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* ── UTILS ── */
@@ -118,7 +120,8 @@ header {
 }
 .logo {
   font-family: var(--font-head); font-weight: 800; font-size: 1.3rem;
-  color: var(--text); text-decoration: none; letter-spacing: -.02em;
+  color: var(--text); text-decoration: none; letter-spacing: -.01em;
+  font-optical-sizing: auto;
   display: flex; align-items: center; gap: 8px;
 }
 .logo span { color: var(--green); }
@@ -160,7 +163,8 @@ header {
 .hero h1 {
   font-family: var(--font-head);
   font-size: clamp(2.4rem, 7vw, 5rem);
-  font-weight: 800; line-height: 1.05; letter-spacing: -.03em;
+  font-weight: 800; line-height: 1.05; letter-spacing: -.02em;
+  font-optical-sizing: auto;
   max-width: 800px; margin-bottom: 20px;
 }
 .hero h1 em { font-style: normal; color: var(--green); }
@@ -307,7 +311,7 @@ footer a:hover { color: var(--text-dim); }
   display: flex; align-items: flex-start; justify-content: space-between;
   margin-bottom: 28px; gap: 16px; flex-wrap: wrap;
 }
-.page-title    { font-family: var(--font-head); font-size: 1.6rem; font-weight: 800; letter-spacing: -.02em; }
+.page-title    { font-family: var(--font-head); font-size: 1.6rem; font-weight: 800; letter-spacing: -.015em; font-optical-sizing: auto; }
 .page-subtitle { color: var(--text-dim); font-size: .88rem; margin-top: 4px; }
 
 .screen        { display: none; }
