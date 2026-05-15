@@ -221,68 +221,38 @@ async function loadUserData() {
 async function addProduct() {
   const name = document.getElementById('prod-name').value.trim();
   const thr  = parseFloat(document.getElementById('prod-threshold').value);
-  if (!name)             { toast('Entrez le nom du produit.', 'error'); return; }
+  if (!name) { toast('Entrez le nom du produit.', 'error'); return; }
   if (isNaN(thr) || thr <= 0) { toast('Entrez un prix seuil valide.', 'error'); return; }
-  if (!currentUser)      { toast('Vous devez être connecté.', 'error'); return; }
+  if (!currentUser) { toast('Vous devez être connecté.', 'error'); return; }
 
   const btn = document.getElementById('btn-add-product');
-  btn.innerHTML = '<span class="loader"></span>'; btn.disabled = true;
+  btn.innerHTML = '<span class="loader"></span>'; 
+  btn.disabled = true;
+
   try {
-    const ref = await addDoc(collection(db, 'users', currentUser.uid, 'products'), { name, threshold: thr });
+    const ref = await addDoc(collection(db, 'users', currentUser.uid, 'products'), {
+      name, 
+      threshold: thr,
+    });
+
     userProducts.push({ id: ref.id, name, threshold: thr, onSale: false });
-    document.getElementById('prod-name').value      = '';
+
+    document.getElementById('prod-name').value = '';
     document.getElementById('prod-threshold').value = '';
+
     renderProducts();
     updateStats();
+
     toast(`"${name}" ajouté ! ✅`, 'success');
-  } catch(e) {
+  } catch (e) {
     console.error('addProduct error:', e);
     toast(`Erreur Firestore : ${e.message}`, 'error');
-    document.getElementById('firestore-warning').classList.remove('hidden');
+    document.getElementById('firestore-warning')?.classList.remove('hidden');
   } finally {
-    btn.innerHTML = '<i class="fas fa-plus"></i> Ajouter'; btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-plus"></i> Ajouter';
+    btn.disabled = false;
   }
 }
-
-async function deleteProduct(id, name) {
-  if (!confirm(`Supprimer "${name}" ?`)) return;
-  try {
-    await deleteDoc(doc(db, 'users', currentUser.uid, 'products', id));
-    userProducts = userProducts.filter(p => p.id !== id);
-    renderProducts();
-    updateStats();
-    toast(`"${name}" supprimé.`, 'info');
-  } catch(e) {
-    console.error('deleteProduct error:', e);
-    toast(`Erreur : ${e.message}`, 'error');
-  }
-}
-
-function renderProducts() {
-  const el = document.getElementById('products-list');
-  if (!userProducts.length) {
-    el.innerHTML = `<div class="empty-state"><i class="fas fa-shopping-basket"></i><p>Aucun produit dans votre liste.<br/>Ajoutez-en un ci-dessus !</p></div>`;
-    return;
-  }
-  el.innerHTML = userProducts.map(p => `
-    <div class="product-card${p.onSale ? ' on-sale' : ''}">
-      <div class="product-info">
-        <div class="product-name">
-          ${p.name}
-          ${p.onSale ? '<span class="badge badge-green">🏷️ En spécial aujourd\'hui !</span>' : ''}
-        </div>
-        <div class="product-threshold">Seuil : <strong>${p.threshold.toFixed(2)} $</strong></div>
-      </div>
-      <div class="product-price${p.onSale ? ' deal' : ''}">
-        ${p.currentPrice
-          ? `<div class="current">${p.currentPrice.toFixed(2)} $</div><div class="store">chez ${p.currentStore}</div>`
-          : `<div class="current" style="color:var(--text-mute);font-size:.82rem">Aucun spécial récent</div>`}
-      </div>
-      <button class="delete-btn" data-del-id="${p.id}" data-del-name="${p.name}">
-        <i class="fas fa-trash"></i>
-      </button>
-    </div>
-  `).join('');
 }
 
 
