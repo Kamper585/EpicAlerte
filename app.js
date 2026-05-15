@@ -10,8 +10,7 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
 import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs,
          deleteDoc, query, orderBy, limit, serverTimestamp, writeBatch }
   from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
-import { getMessaging, getToken, onMessage }
-  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
+
 
 // ── CONFIG — remplacez ces valeurs par les vôtres ──
 const firebaseConfig = {
@@ -27,10 +26,7 @@ const firebaseConfig = {
 const app       = initializeApp(firebaseConfig);
 const auth      = getAuth(app);
 const db        = getFirestore(app);
-const messaging = getMessaging(app);
-
-// Votre VAPID key — à récupérer dans Firebase Console
-// → Paramètres du projet → Cloud Messaging → Web Push certificates → Generate key pair
+// Votre VAPID key — Firebase Console → Paramètres → Cloud Messaging → Web Push certificates
 const VAPID_KEY = "BHn7uZlSrxDbjsUWCVbOJOdDCrjgO--dopXlVI8vc2a3MUgMqoV7onyLXTZEUJEVXyBF5kfxyCu1YCuHMuIlvAk";
 
 
@@ -549,7 +545,7 @@ async function requestNotif() {
   try {
     // 1. Enregistrer le Service Worker FCM
     const swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-    console.log('[FCM] Service Worker enregistré');
+    console.log('[FCM] Service Worker enregistré:', swReg);
 
     // 2. Demander la permission
     const perm = await Notification.requestPermission();
@@ -560,7 +556,14 @@ async function requestNotif() {
       return;
     }
 
-    // 3. Obtenir le token FCM
+    // 3. Importer et initialiser Firebase Messaging de façon lazy
+    const { getMessaging, getToken, onMessage } = await import(
+      "https://www.gstatic.com/firebasejs/11.0.0/firebase-messaging.js"
+    );
+    const messaging = getMessaging(app);
+    console.log('[FCM] Messaging initialisé');
+
+    // 4. Obtenir le token FCM
     const token = await getToken(messaging, {
       vapidKey:                  VAPID_KEY,
       serviceWorkerRegistration: swReg,
@@ -573,20 +576,21 @@ async function requestNotif() {
       return;
     }
 
-    console.log('[FCM] Token:', token);
+    console.log('[FCM] Token obtenu:', token);
 
-    // 4. Sauvegarder le token dans Firestore
+    // 5. Sauvegarder le token dans Firestore
     await setDoc(doc(db, 'users', currentUser.uid), { fcmToken: token }, { merge: true });
+    console.log('[FCM] Token sauvegardé dans Firestore');
 
     btn.innerHTML     = '<i class="fas fa-check"></i> Alertes activées !';
     btn.disabled      = true;
     btn.style.opacity = '.7';
-    toast("Notifications activées ! 🔔 Vous recevrez les alertes même quand l'app est fermée.", 'success');
+    toast("Notifications activées ! Vous recevrez les alertes meme quand l'app est fermee.", 'success');
 
-    // 5. Écouter les messages quand l'app est au premier plan
+    // 6. Ecouter les messages quand l'app est au premier plan
     onMessage(messaging, (payload) => {
-      console.log('[FCM] Message reçu au premier plan:', payload);
-      toast(`🏷️ ${payload.notification?.title || 'Nouveau spécial !'}`, 'success');
+      console.log('[FCM] Message recu au premier plan:', payload);
+      toast('🏷️ ' + (payload.notification?.title || 'Nouveau special !'), 'success');
     });
 
   } catch(e) {
