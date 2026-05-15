@@ -1,4 +1,4 @@
- // ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 //  ÉpicAlerte — app.js
 // ═══════════════════════════════════════════════════════════════
 
@@ -31,7 +31,7 @@ const messaging = getMessaging(app);
 
 // Votre VAPID key — à récupérer dans Firebase Console
 // → Paramètres du projet → Cloud Messaging → Web Push certificates → Generate key pair
-const VAPID_KEY = "BHn7uZlSrxDbjsUWCVbOJOdDCrjgO--dopXlVI8vc2a3MUgMqoV7onyLXTZEUJEVXyBF5kfxyCu1YCuHMuIlvAk";
+const VAPID_KEY = "VOTRE_VAPID_KEY";
 
 
 // ═══════════════════════════════════════════════════════════════
@@ -534,7 +534,7 @@ async function requestNotif() {
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
   if (isIOS && !window.navigator.standalone) {
     document.getElementById('ios-notice').classList.remove('hidden');
-    toast('Ajoutez d'abord l'app à l'écran d'accueil via Safari !', 'info');
+    toast("Ajoutez d'abord l'app à l'écran d'accueil via Safari !", 'info');
     return;
   }
   if (!('Notification' in window)) {
@@ -567,7 +567,7 @@ async function requestNotif() {
     });
 
     if (!token) {
-      toast('Impossible d'obtenir le token FCM. Réessayez.', 'error');
+      toast("Impossible d'obtenir le token FCM. Réessayez.", 'error');
       btn.innerHTML = '<i class="fas fa-bell"></i> Activer les alertes mobiles';
       btn.disabled  = false;
       return;
@@ -581,7 +581,7 @@ async function requestNotif() {
     btn.innerHTML     = '<i class="fas fa-check"></i> Alertes activées !';
     btn.disabled      = true;
     btn.style.opacity = '.7';
-    toast('Notifications activées ! 🔔 Vous recevrez les alertes même quand l'app est fermée.', 'success');
+    toast("Notifications activées ! 🔔 Vous recevrez les alertes même quand l'app est fermée.", 'success');
 
     // 5. Écouter les messages quand l'app est au premier plan
     onMessage(messaging, (payload) => {
@@ -591,7 +591,7 @@ async function requestNotif() {
 
   } catch(e) {
     console.error('[FCM] Erreur:', e);
-    toast('Erreur d'activation : ' + e.message, 'error');
+    toast("Erreur d'activation : " + e.message, 'error');
     btn.innerHTML = '<i class="fas fa-bell"></i> Activer les alertes mobiles';
     btn.disabled  = false;
   }
