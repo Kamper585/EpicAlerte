@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ÉcoAubaine — Ne payez plus jamais le plein prix</title>
+  <title>ÉpiAlerte — Ne payez plus jamais le plein prix</title>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -22,6 +22,13 @@
      TOASTS
 ══════════════════════════════════════════════════ -->
 <div id="toast-container"></div>
+
+<!-- ══ PAGE : CHARGEMENT ══ -->
+<div id="page-loading" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+  <span class="logo-cart" style="font-size:3rem">🛒</span>
+  <div class="loader"></div>
+  <p style="color:var(--text-mute);font-size:.88rem">Chargement...</p>
+</div>
 
 <!-- ══════════════════════════════════════════════════
      HEADER
@@ -127,7 +134,7 @@
 
   <!-- Avantages -->
   <div class="section">
-    <div class="section-label">Pourquoi ÉcoAubaine</div>
+    <div class="section-label">Pourquoi ÉpicAlerte</div>
     <h2>Tout ce qu'il vous faut <span class="bounce-cart">🛒</span></h2>
     <div class="features-grid">
       <div class="feature-card">
@@ -192,7 +199,7 @@
       <a href="#">Contact</a>
       <a href="#">À propos</a>
     </p>
-    <p>© <span id="footer-year"></span> ÉcoAubaine — Fait avec 💚 au Québec</p>
+    <p>© <span id="footer-year"></span> ÉpicAlerte — Fait avec 💚 au Québec</p>
   </footer>
 </div>
 
