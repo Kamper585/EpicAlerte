@@ -20,14 +20,16 @@ import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs,
   from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
 // ── CONFIG — remplacez ces valeurs par les vôtres ──
-const firebaseConfig = {
-  apiKey:            "VOTRE_API_KEY",
-  authDomain:        "VOTRE_PROJECT.firebaseapp.com",
-  projectId:         "VOTRE_PROJECT_ID",
-  storageBucket:     "VOTRE_PROJECT.appspot.com",
-  messagingSenderId: "VOTRE_SENDER_ID",
-  appId:             "VOTRE_APP_ID"
-};
+  const firebaseConfig = {
+    apiKey: "AIzaSyDCvyJnMiF80IFE9IKQKyKOFoiCre3sQY8",
+    authDomain: "projet-ecoaubaine.firebaseapp.com",
+    databaseURL: "https://projet-ecoaubaine-default-rtdb.firebaseio.com",
+    projectId: "projet-ecoaubaine",
+    storageBucket: "projet-ecoaubaine.firebasestorage.app",
+    messagingSenderId: "720715738287",
+    appId: "1:720715738287:web:37c8b4eedde97b6593f85a",
+    measurementId: "G-F7ZF6TJRRQ"
+  };
 
 const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
