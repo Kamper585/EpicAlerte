@@ -323,11 +323,12 @@ footer a:hover { color: var(--text-dim); }
 .error-msg { color: #f87171; font-size: .8rem; margin-top: 6px; }
 
 /* ── APP ── */
-#page-app { animation: fadeIn .4s ease; }
+#page-app { animation: fadeIn .4s ease; overflow-x: hidden; max-width: 100vw; }
 
 .app-layout {
-  display: grid; grid-template-columns: 220px 1fr;
+  display: grid; grid-template-columns: 220px minmax(0, 1fr);
   min-height: calc(100vh - 64px);
+  overflow-x: hidden;
 }
 .sidebar {
   background: var(--bg2); border-right: 1px solid var(--border);
@@ -345,7 +346,7 @@ footer a:hover { color: var(--text-dim); }
 .nav-item i { width: 18px; text-align: center; }
 .sidebar-bottom { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border); }
 
-.main-content { padding: 32px; overflow-y: auto; }
+.main-content { padding: 32px; overflow-y: auto; overflow-x: hidden; min-width: 0; }
 .page-header {
   display: flex; align-items: flex-start; justify-content: space-between;
   margin-bottom: 28px; gap: 16px; flex-wrap: wrap;
@@ -354,7 +355,7 @@ footer a:hover { color: var(--text-dim); }
 .page-subtitle { color: var(--text-dim); font-size: .88rem; margin-top: 4px; }
 
 .screen        { display: none; }
-.screen.active { display: block; }
+.screen.active { display: block; min-width: 0; overflow-x: hidden; }
 
 /* ── ONBOARDING ── */
 #page-onboarding {
@@ -429,7 +430,7 @@ footer a:hover { color: var(--text-dim); }
 }
 .product-card.on-sale { border-color: rgba(34,197,94,.4); background: rgba(34,197,94,.04); }
 .product-info     { flex: 1; }
-.product-name     { font-weight: 600; font-size: .95rem; }
+.product-name     { font-weight: 600; font-size: .95rem; word-break: break-word; }
 .product-threshold{ font-size: .78rem; color: var(--text-mute); margin-top: 2px; }
 .product-price    { text-align: right; min-width: 90px; }
 .product-price .current { font-family: var(--font-head); font-size: 1.2rem; font-weight: 700; }
@@ -480,21 +481,48 @@ footer a:hover { color: var(--text-dim); }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
-  .app-layout { grid-template-columns: 1fr; }
+  .app-layout {
+    grid-template-columns: 1fr;
+    overflow-x: hidden;
+  }
   .sidebar {
     flex-direction: row; overflow-x: auto; padding: 12px;
     border-right: none; border-bottom: 1px solid var(--border); gap: 4px;
+    /* Empêche la sidebar de forcer un dépassement horizontal */
+    width: 100%; box-sizing: border-box;
   }
   .sidebar-bottom { margin-top: 0; padding-top: 0; border-top: none; margin-left: auto; }
-  .nav-item       { padding: 8px 12px; font-size: .82rem; white-space: nowrap; }
-  .main-content   { padding: 20px; }
+  .nav-item       { padding: 8px 12px; font-size: .82rem; white-space: nowrap; flex-shrink: 0; }
+  .main-content   { padding: 16px; overflow-x: hidden; min-width: 0; width: 100%; box-sizing: border-box; }
   .page-header    { flex-direction: column; }
+  .page-title     { font-size: 1.3rem; }
   .form-row       { flex-direction: column; }
   .stats-row      { grid-template-columns: repeat(2, 1fr); }
+  /* Cartes produits — empêcher le débordement */
+  .product-card   { flex-wrap: wrap; gap: 10px; }
+  .product-price  { min-width: 0; }
+  /* Formulaire ajout produit */
+  .add-product-form { padding: 16px; }
 }
 @media (max-width: 480px) {
   header               { padding: 0 16px; }
   #user-email-display  { display: none; }
   .hero h1             { font-size: 2rem; }
   .hero-cta            { flex-direction: column; align-items: center; }
+}
+
+/* ── CORRECTION GLOBALE DÉBORDEMENT MOBILE ── */
+@media (max-width: 768px) {
+  body, #page-app, #page-landing, #page-onboarding {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+  /* Tous les écrans de l'app restent dans la fenêtre */
+  .screen.active, .main-content, .app-layout {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  /* Header : évite que les boutons débordent */
+  .header-actions { gap: 8px; }
+  .btn-sm { padding: 6px 10px; font-size: .78rem; }
 }
