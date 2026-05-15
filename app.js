@@ -31,7 +31,7 @@ const messaging = getMessaging(app);
 
 // Votre VAPID key — à récupérer dans Firebase Console
 // → Paramètres du projet → Cloud Messaging → Web Push certificates → Generate key pair
-const VAPID_KEY = "VOTRE_VAPID_KEY";
+const VAPID_KEY = "BHn7uZlSrxDbjsUWCVbOJOdDCrjgO--dopXlVI8vc2a3MUgMqoV7onyLXTZEUJEVXyBF5kfxyCu1YCuHMuIlvAk";
 
 
 // ═══════════════════════════════════════════════════════════════
