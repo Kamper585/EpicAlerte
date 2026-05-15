@@ -85,10 +85,14 @@ onAuthStateChanged(auth, async (user) => {
       }
     } catch(e) {
       console.error('[Auth] Erreur chargement:', e);
-      toast('Erreur de connexion à la base de données. Réessayez.', 'error');
-      await fbSignOut(auth);
+      if (e.message?.includes('offline') || e.code === 'unavailable') {
+        toast('Firestore hors ligne — vérifiez que votre domaine est autorisé dans Firebase Auth → Settings → Authorized domains.', 'error');
+      } else {
+        toast('Erreur : ' + e.message, 'error');
+      }
+      // Ne pas déconnecter — laisser l'utilisateur réessayer
       showPage('landing');
-      showHeader('public');
+      showHeader('private');
     }
   } else {
     currentUser = null;
@@ -223,14 +227,20 @@ async function saveOnboarding() {
     const verify = await getDoc(doc(db, 'users', currentUser.uid));
     userStores = verify.data()?.stores || sel;
 
+    // Remettre le bouton AVANT de changer de page
+    btn.innerHTML = '<i class="fas fa-check"></i> Confirmer mes magasins';
+    btn.disabled  = false;
+
     await loadUserData();
     showPage('app');
     renderApp();
     toast(`✅ ${userStores.length} magasin(s) sauvegardé(s) !`, 'success');
   } catch(e) {
     console.error('[saveOnboarding]', e);
-    toast('Erreur de sauvegarde : ' + e.message, 'error');
-  } finally {
+    const msg = e.message?.includes('offline')
+      ? 'Firestore hors ligne — vérifiez les domaines autorisés dans Firebase Auth.'
+      : 'Erreur de sauvegarde : ' + e.message;
+    toast(msg, 'error');
     btn.innerHTML = '<i class="fas fa-check"></i> Confirmer mes magasins';
     btn.disabled  = false;
   }
@@ -263,7 +273,10 @@ async function saveStoreSettings() {
     toast(`✅ ${userStores.length} magasin(s) sauvegardé(s) !`, 'success');
   } catch(e) {
     console.error('[saveStoreSettings]', e);
-    toast('Erreur de sauvegarde : ' + e.message, 'error');
+    const msg = e.message?.includes('offline')
+      ? 'Firestore hors ligne — vérifiez les domaines autorisés dans Firebase Auth.'
+      : 'Erreur de sauvegarde : ' + e.message;
+    toast(msg, 'error');
   } finally {
     btn.innerHTML = '<i class="fas fa-save"></i> Enregistrer';
     btn.disabled  = false;
