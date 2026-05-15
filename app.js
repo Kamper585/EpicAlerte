@@ -32,16 +32,38 @@ const db   = getFirestore(app);
 //  STATE
 // ═══════════════════════════════════════════════════════════════
 let currentUser  = null;
-let userProducts = [];   // [{ id, name, threshold, currentPrice, currentStore, onSale }]
-let userStores   = [];   // string[]
-let alertHistory = [];   // [{ id, product, price, store, threshold, date }]
+let userProducts = [];
+let userStores   = [];
+let alertHistory = [];
 let todayAlerts  = 0;
 
 const STORE_LIST = ['IGA', 'Provigo', 'Métro', 'Super C', 'Maxi', 'Walmart', 'Costco', 'Adonis'];
 
 
 // ═══════════════════════════════════════════════════════════════
+//  PAGE / HEADER VISIBILITY
+//  CORRECTION : inclut 'loading' dans la liste des pages
+// ═══════════════════════════════════════════════════════════════
+function showPage(page) {
+  ['loading', 'landing', 'onboarding', 'app'].forEach(p => {
+    const el = document.getElementById(`page-${p}`);
+    if (el) el.classList.toggle('hidden', p !== page);
+  });
+}
+
+function showHeader(mode) {
+  document.getElementById('header-public').classList.toggle('hidden',  mode !== 'public');
+  document.getElementById('header-private').classList.toggle('hidden', mode !== 'private');
+}
+
+// Affiche le spinner immédiatement, avant que Firebase réponde
+showPage('loading');
+showHeader('public');
+
+
+// ═══════════════════════════════════════════════════════════════
 //  AUTH STATE LISTENER
+//  CORRECTION : try/catch + écran de chargement
 // ═══════════════════════════════════════════════════════════════
 onAuthStateChanged(auth, async (user) => {
   if (user) {
@@ -50,18 +72,27 @@ onAuthStateChanged(auth, async (user) => {
     document.getElementById('user-avatar').textContent        = user.email[0].toUpperCase();
     document.getElementById('user-email-display').textContent = user.email;
 
-    const userDoc = await getDoc(doc(db, 'users', user.uid));
-    if (!userDoc.exists() || !(userDoc.data().stores?.length)) {
-      showPage('onboarding');
-      renderStoreGrid('onboarding-stores', []);
-    } else {
-      userStores = userDoc.data().stores || [];
-      await loadUserData();
-      showPage('app');
-      renderApp();
+    try {
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      if (!userDoc.exists() || !(userDoc.data().stores?.length)) {
+        showPage('onboarding');
+        renderStoreGrid('onboarding-stores', []);
+      } else {
+        userStores = userDoc.data().stores || [];
+        await loadUserData();
+        showPage('app');
+        renderApp();
+      }
+    } catch(e) {
+      console.error('[Auth] Erreur chargement:', e);
+      toast('Erreur de connexion à la base de données. Réessayez.', 'error');
+      await fbSignOut(auth);
+      showPage('landing');
+      showHeader('public');
     }
   } else {
-    currentUser = null; userProducts = []; userStores = []; alertHistory = []; todayAlerts = 0;
+    currentUser = null;
+    userProducts = []; userStores = []; alertHistory = []; todayAlerts = 0;
     showHeader('public');
     showPage('landing');
   }
@@ -157,10 +188,11 @@ async function doDeleteAccount() {
 
 
 // ═══════════════════════════════════════════════════════════════
-//  STORE GRID (réutilisé pour onboarding ET paramètres)
+//  STORE GRID
 // ═══════════════════════════════════════════════════════════════
 function renderStoreGrid(containerId, selected) {
   const grid = document.getElementById(containerId);
+  if (!grid) return;
   grid.innerHTML = STORE_LIST.map(s =>
     `<div class="store-toggle${selected.includes(s) ? ' selected' : ''}" data-store="${s}">${s}</div>`
   ).join('');
@@ -169,6 +201,7 @@ function renderStoreGrid(containerId, selected) {
 
 // ═══════════════════════════════════════════════════════════════
 //  ONBOARDING
+//  CORRECTION : try/catch + loader + vérification Firestore
 // ═══════════════════════════════════════════════════════════════
 async function saveOnboarding() {
   const sel    = [...document.querySelectorAll('#onboarding-stores .store-toggle.selected')].map(e => e.dataset.store);
@@ -176,42 +209,94 @@ async function saveOnboarding() {
   if (custom) sel.push(...custom.split(',').map(s => s.trim()).filter(Boolean));
   if (!sel.length) { toast('Choisissez au moins un magasin.', 'error'); return; }
 
-  await setDoc(doc(db, 'users', currentUser.uid), { stores: sel, email: currentUser.email }, { merge: true });
-  userStores = sel;
-  await loadUserData();
-  showPage('app');
-  renderApp();
-  toast('Magasins enregistrés ! 🎉', 'success');
+  const btn = document.getElementById('btn-save-onboarding');
+  btn.innerHTML = '<span class="loader"></span> Sauvegarde...';
+  btn.disabled  = true;
+
+  try {
+    await setDoc(doc(db, 'users', currentUser.uid), {
+      stores: sel,
+      email:  currentUser.email
+    }, { merge: true });
+
+    // Relire depuis Firestore pour confirmer la persistance
+    const verify = await getDoc(doc(db, 'users', currentUser.uid));
+    userStores = verify.data()?.stores || sel;
+
+    await loadUserData();
+    showPage('app');
+    renderApp();
+    toast(`✅ ${userStores.length} magasin(s) sauvegardé(s) !`, 'success');
+  } catch(e) {
+    console.error('[saveOnboarding]', e);
+    toast('Erreur de sauvegarde : ' + e.message, 'error');
+  } finally {
+    btn.innerHTML = '<i class="fas fa-check"></i> Confirmer mes magasins';
+    btn.disabled  = false;
+  }
 }
 
+
+// ═══════════════════════════════════════════════════════════════
+//  PARAMÈTRES — sauvegarder les magasins
+//  CORRECTION : try/catch + loader + vérification Firestore
+// ═══════════════════════════════════════════════════════════════
 async function saveStoreSettings() {
   const sel    = [...document.querySelectorAll('#settings-stores .store-toggle.selected')].map(e => e.dataset.store);
   const custom = document.getElementById('settings-custom-store').value.trim();
   if (custom) sel.push(...custom.split(',').map(s => s.trim()).filter(Boolean));
   if (!sel.length) { toast('Choisissez au moins un magasin.', 'error'); return; }
 
-  await setDoc(doc(db, 'users', currentUser.uid), { stores: sel }, { merge: true });
-  userStores = sel;
-  updateStats();
-  renderSettings();
-  toast('Magasins mis à jour ! ✅', 'success');
+  const btn = document.getElementById('btn-save-stores');
+  btn.innerHTML = '<span class="loader"></span> Sauvegarde...';
+  btn.disabled  = true;
+
+  try {
+    await setDoc(doc(db, 'users', currentUser.uid), { stores: sel }, { merge: true });
+
+    // Relire depuis Firestore pour confirmer la persistance
+    const verify = await getDoc(doc(db, 'users', currentUser.uid));
+    userStores = verify.data()?.stores || sel;
+
+    updateStats();
+    renderSettings();
+    toast(`✅ ${userStores.length} magasin(s) sauvegardé(s) !`, 'success');
+  } catch(e) {
+    console.error('[saveStoreSettings]', e);
+    toast('Erreur de sauvegarde : ' + e.message, 'error');
+  } finally {
+    btn.innerHTML = '<i class="fas fa-save"></i> Enregistrer';
+    btn.disabled  = false;
+  }
 }
 
 
 // ═══════════════════════════════════════════════════════════════
 //  DATA — chargement depuis Firestore
+//  CORRECTION : try/catch séparés pour produits et alertes
 // ═══════════════════════════════════════════════════════════════
 async function loadUserData() {
-  userProducts = [];
-  (await getDocs(collection(db, 'users', currentUser.uid, 'products')))
-    .forEach(d => userProducts.push({ id: d.id, ...d.data(), onSale: false }));
+  try {
+    userProducts = [];
+    const prodsSnap = await getDocs(collection(db, 'users', currentUser.uid, 'products'));
+    prodsSnap.forEach(d => userProducts.push({ id: d.id, ...d.data(), onSale: false }));
+  } catch(e) {
+    console.error('[loadUserData] produits:', e);
+    toast('Erreur de chargement des produits.', 'error');
+  }
 
-  alertHistory = [];
-  (await getDocs(query(
-    collection(db, 'users', currentUser.uid, 'alerts'),
-    orderBy('date', 'desc'),
-    limit(50)
-  ))).forEach(d => alertHistory.push({ id: d.id, ...d.data() }));
+  try {
+    alertHistory = [];
+    const alertsSnap = await getDocs(query(
+      collection(db, 'users', currentUser.uid, 'alerts'),
+      orderBy('date', 'desc'),
+      limit(50)
+    ));
+    alertsSnap.forEach(d => alertHistory.push({ id: d.id, ...d.data() }));
+  } catch(e) {
+    console.error('[loadUserData] alertes:', e);
+    // Les alertes sont optionnelles, on ne bloque pas l'app
+  }
 }
 
 
@@ -221,23 +306,27 @@ async function loadUserData() {
 async function addProduct() {
   const name = document.getElementById('prod-name').value.trim();
   const thr  = parseFloat(document.getElementById('prod-threshold').value);
-  if (!name)             { toast('Entrez le nom du produit.', 'error'); return; }
+  if (!name)               { toast('Entrez le nom du produit.', 'error'); return; }
   if (isNaN(thr) || thr <= 0) { toast('Entrez un prix seuil valide.', 'error'); return; }
-  if (!currentUser)      { toast('Vous devez être connecté.', 'error'); return; }
+  if (!currentUser)        { toast('Vous devez être connecté.', 'error'); return; }
 
   const btn = document.getElementById('btn-add-product');
   btn.innerHTML = '<span class="loader"></span>'; btn.disabled = true;
+
   try {
-    const ref = await addDoc(collection(db, 'users', currentUser.uid, 'products'), { name, threshold: thr });
+    const ref = await addDoc(
+      collection(db, 'users', currentUser.uid, 'products'),
+      { name, threshold: thr }
+    );
     userProducts.push({ id: ref.id, name, threshold: thr, onSale: false });
     document.getElementById('prod-name').value      = '';
     document.getElementById('prod-threshold').value = '';
     renderProducts();
     updateStats();
-    toast(`"${name}" ajouté ! ✅`, 'success');
+    toast(`✅ "${name}" ajouté !`, 'success');
   } catch(e) {
-    console.error('addProduct error:', e);
-    toast(`Erreur Firestore : ${e.message}`, 'error');
+    console.error('[addProduct]', e);
+    toast('Erreur : ' + e.message, 'error');
     document.getElementById('firestore-warning').classList.remove('hidden');
   } finally {
     btn.innerHTML = '<i class="fas fa-plus"></i> Ajouter'; btn.disabled = false;
@@ -253,13 +342,14 @@ async function deleteProduct(id, name) {
     updateStats();
     toast(`"${name}" supprimé.`, 'info');
   } catch(e) {
-    console.error('deleteProduct error:', e);
-    toast(`Erreur : ${e.message}`, 'error');
+    console.error('[deleteProduct]', e);
+    toast('Erreur : ' + e.message, 'error');
   }
 }
 
 function renderProducts() {
   const el = document.getElementById('products-list');
+  if (!el) return;
   if (!userProducts.length) {
     el.innerHTML = `<div class="empty-state"><i class="fas fa-shopping-basket"></i><p>Aucun produit dans votre liste.<br/>Ajoutez-en un ci-dessus !</p></div>`;
     return;
@@ -302,7 +392,7 @@ async function simulateDay() {
   for (const prod of picked) {
     const pool  = [...new Set([...userStores, 'Loblaw', 'Costco', 'Walmart'])];
     const store = pool[Math.floor(Math.random() * pool.length)];
-    if (!userStores.includes(store)) continue;  // filtre magasins non sélectionnés
+    if (!userStores.includes(store)) continue;
 
     const price = parseFloat((prod.threshold * 0.6 + Math.random() * prod.threshold * 0.6).toFixed(2));
     prod.currentPrice = price;
@@ -318,9 +408,13 @@ async function simulateDay() {
       newAlerts.push(alertData);
       alertHistory.unshift({ ...alertData, id: Date.now() + Math.random() });
 
-      await addDoc(collection(db, 'users', currentUser.uid, 'alerts'), {
-        ...alertData, date: serverTimestamp()
-      });
+      try {
+        await addDoc(collection(db, 'users', currentUser.uid, 'alerts'), {
+          ...alertData, date: serverTimestamp()
+        });
+      } catch(e) {
+        console.error('[simulateDay] alerte:', e);
+      }
 
       // PUSH INTEGRATION — remplacez par OneSignal ou FCM
       console.log(`[PUSH] "${prod.name}" à ${price}$ chez ${store}`);
@@ -349,10 +443,11 @@ async function simulateDay() {
 
 
 // ═══════════════════════════════════════════════════════════════
-//  RENDERS — dashboard & historique
+//  RENDERS
 // ═══════════════════════════════════════════════════════════════
 function renderDashboardAlerts() {
   const el     = document.getElementById('dashboard-alerts');
+  if (!el) return;
   const recent = alertHistory.slice(0, 5);
   if (!recent.length) {
     el.innerHTML = `<div class="empty-state"><i class="fas fa-bell-slash"></i><p>Aucun spécial détecté.<br/>Cliquez sur "Simuler un nouveau jour" pour tester.</p></div>`;
@@ -373,6 +468,7 @@ function renderDashboardAlerts() {
 
 function renderHistory() {
   const el = document.getElementById('history-list');
+  if (!el) return;
   if (!alertHistory.length) {
     el.innerHTML = `<div class="empty-state"><i class="fas fa-history"></i><p>Aucun historique pour l'instant.</p></div>`;
     document.getElementById('alerts-badge').style.display = 'none';
@@ -393,18 +489,22 @@ function renderHistory() {
   `).join('');
 
   const badge = document.getElementById('alerts-badge');
-  badge.textContent    = alertHistory.length > 9 ? '9+' : alertHistory.length;
-  badge.style.display  = '';
+  badge.textContent   = alertHistory.length > 9 ? '9+' : alertHistory.length;
+  badge.style.display = '';
 }
 
 async function clearAlerts() {
   if (!confirm('Effacer tout l\'historique des alertes ?')) return;
-  const batch = writeBatch(db);
-  (await getDocs(collection(db, 'users', currentUser.uid, 'alerts'))).forEach(d => batch.delete(d.ref));
-  await batch.commit();
-  alertHistory = []; todayAlerts = 0;
-  renderHistory(); renderDashboardAlerts(); updateStats();
-  toast('Historique effacé.', 'info');
+  try {
+    const batch = writeBatch(db);
+    (await getDocs(collection(db, 'users', currentUser.uid, 'alerts'))).forEach(d => batch.delete(d.ref));
+    await batch.commit();
+    alertHistory = []; todayAlerts = 0;
+    renderHistory(); renderDashboardAlerts(); updateStats();
+    toast('Historique effacé.', 'info');
+  } catch(e) {
+    toast('Erreur : ' + e.message, 'error');
+  }
 }
 
 
@@ -419,13 +519,11 @@ async function requestNotif() {
     return;
   }
   if (!('Notification' in window)) { toast('Ce navigateur ne supporte pas les notifications.', 'error'); return; }
-
   const perm = await Notification.requestPermission();
   if (perm === 'granted') {
     const btn = document.getElementById('notif-btn');
-    btn.innerHTML  = '<i class="fas fa-check"></i> Alertes activées !';
-    btn.disabled   = true;
-    btn.style.opacity = '.7';
+    btn.innerHTML = '<i class="fas fa-check"></i> Alertes activées !';
+    btn.disabled  = true; btn.style.opacity = '.7';
     toast('Notifications activées ! 🔔', 'success');
     registerServiceWorker();
   } else {
@@ -434,12 +532,11 @@ async function requestNotif() {
 }
 
 function registerServiceWorker() {
-  // Service Worker généré en Blob pour fonctionner sans fichier séparé
   // PUSH INTEGRATION : branchez OneSignal ou FCM dans ce code
   const swCode = `
     self.addEventListener('push', e => {
       const d = e.data ? e.data.json() : {};
-      self.registration.showNotification(d.title || 'ÉcoAubaine', {
+      self.registration.showNotification(d.title || 'ÉpicAlerte', {
         body: d.body || 'Nouveau spécial !'
       });
     });
@@ -456,10 +553,10 @@ function registerServiceWorker() {
 
 
 // ═══════════════════════════════════════════════════════════════
-//  NAVIGATION — écrans et pages
+//  NAVIGATION
 // ═══════════════════════════════════════════════════════════════
 function showScreen(name) {
-  showPage('app'); // s'assurer que la page app est visible (ex: clic sur ⚙️ depuis le header)
+  showPage('app');
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(`screen-${name}`)?.classList.add('active');
@@ -468,24 +565,12 @@ function showScreen(name) {
   if (name === 'products') renderProducts();
 }
 
-function showPage(page) {
-  ['landing', 'onboarding', 'app'].forEach(p =>
-    document.getElementById(`page-${p}`).classList.toggle('hidden', p !== page)
-  );
-}
-
-function showHeader(mode) {
-  document.getElementById('header-public').classList.toggle('hidden',  mode !== 'public');
-  document.getElementById('header-private').classList.toggle('hidden', mode !== 'private');
-}
-
 
 // ═══════════════════════════════════════════════════════════════
-//  PARAMÈTRES
+//  PARAMÈTRES — render
 // ═══════════════════════════════════════════════════════════════
 function renderSettings() {
   renderStoreGrid('settings-stores', userStores);
-  // Pré-remplir les magasins custom (hors STORE_LIST)
   const customs = userStores.filter(s => !STORE_LIST.includes(s));
   document.getElementById('settings-custom-store').value = customs.join(', ');
   document.getElementById('settings-email').textContent  = currentUser?.email || '—';
@@ -553,8 +638,6 @@ function fbErr(code) {
 
 // ═══════════════════════════════════════════════════════════════
 //  EVENT LISTENERS
-//  Tous centralisés ici — les onclick="" inline sont incompatibles
-//  avec <script type="module"> (scope isolé).
 // ═══════════════════════════════════════════════════════════════
 
 document.getElementById('footer-year').textContent = new Date().getFullYear();
@@ -597,7 +680,6 @@ document.getElementById('btn-simulate').addEventListener('click', simulateDay);
 // Produits
 document.getElementById('btn-add-product').addEventListener('click', addProduct);
 document.getElementById('prod-name').addEventListener('keydown', e => { if (e.key === 'Enter') addProduct(); });
-// Suppression par délégation (le DOM est recréé à chaque renderProducts)
 document.getElementById('products-list').addEventListener('click', e => {
   const btn = e.target.closest('[data-del-id]');
   if (btn) deleteProduct(btn.dataset.delId, btn.dataset.delName);
@@ -610,14 +692,14 @@ document.getElementById('btn-clear-alerts').addEventListener('click', clearAlert
 document.getElementById('notif-btn').addEventListener('click', requestNotif);
 
 // Paramètres
-document.getElementById('btn-save-stores').addEventListener('click',       saveStoreSettings);
-document.getElementById('btn-signout-settings').addEventListener('click',  doSignOut);
-document.getElementById('btn-delete-account').addEventListener('click',    doDeleteAccount);
+document.getElementById('btn-save-stores').addEventListener('click',      saveStoreSettings);
+document.getElementById('btn-signout-settings').addEventListener('click', doSignOut);
+document.getElementById('btn-delete-account').addEventListener('click',   doDeleteAccount);
 
 // Onboarding
 document.getElementById('btn-save-onboarding').addEventListener('click', saveOnboarding);
 
-// Store toggles — délégation globale (fonctionne pour onboarding ET paramètres)
+// Store toggles — délégation globale
 document.addEventListener('click', e => {
   const toggle = e.target.closest('.store-toggle');
   if (toggle) toggle.classList.toggle('selected');
