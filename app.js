@@ -11,7 +11,7 @@ import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs,
          deleteDoc, query, orderBy, limit, serverTimestamp, writeBatch }
   from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 import { getMessaging, getToken, onMessage }
-  from "https://www.gstatic.com/firebasejs/11.0.0/firebase-messaging.js";
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
 // ── CONFIG — remplacez ces valeurs par les vôtres ──
 const firebaseConfig = {

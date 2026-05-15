@@ -1,13 +1,13 @@
  // ═══════════════════════════════════════════════════════════════
 //  ÉpicAlerte — firebase-messaging-sw.js
 //  Service Worker FCM — doit être à la RACINE du projet
-//  Ce fichier gère les notifications quand l'app est fermée
 // ═══════════════════════════════════════════════════════════════
 
-importScripts("https://www.gstatic.com/firebasejs/11.0.0/firebase-app-compat.js");
-importScripts("https://www.gstatic.com/firebasejs/11.0.0/firebase-messaging-compat.js");
+// Firebase 10 compat — version stable pour les Service Workers
+importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js");
 
-// ── Même config que dans app.js ──
+// ── Remplacez ces valeurs par les vôtres (mêmes que dans app.js) ──
 const firebaseConfig = {
   apiKey: "AIzaSyAIvFi-fcZ3iwwCKm0neN4jCzd4EMfOPdc",
   authDomain: "authentication-dd396.firebaseapp.com",
@@ -18,30 +18,34 @@ const firebaseConfig = {
   measurementId: "G-VN39DL2N9V"
 };
 
+firebase.initializeApp(firebaseConfig);
+
 const messaging = firebase.messaging();
 
 // Notification reçue quand l'app est en arrière-plan ou fermée
-messaging.onBackgroundMessage((payload) => {
+messaging.onBackgroundMessage(function(payload) {
   console.log("[FCM SW] Message reçu en arrière-plan:", payload);
 
-  const { title, body } = payload.notification || {};
+  var title = (payload.notification && payload.notification.title) || "EpicAlerte";
+  var body  = (payload.notification && payload.notification.body)  || "Un nouveau special vous attend !";
 
-  self.registration.showNotification(title || "ÉpicAlerte 🛒", {
-    body:    body || "Un nouveau spécial vous attend !",
+  self.registration.showNotification(title, {
+    body:    body,
     icon:    "/icon-192.png",
-    badge:   "/icon-192.png",
     vibrate: [200, 100, 200],
-    data:    { url: "/" },
+    data:    { url: "/" }
   });
 });
 
-// Clic sur la notification → ouvre l'app
-self.addEventListener("notificationclick", (event) => {
+// Clic sur la notification - ouvre l'app
+self.addEventListener("notificationclick", function(event) {
   event.notification.close();
   event.waitUntil(
-    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
-      for (const client of clientList) {
-        if (client.url === "/" && "focus" in client) return client.focus();
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then(function(clientList) {
+      for (var i = 0; i < clientList.length; i++) {
+        if (clientList[i].url === "/" && "focus" in clientList[i]) {
+          return clientList[i].focus();
+        }
       }
       if (clients.openWindow) return clients.openWindow("/");
     })
