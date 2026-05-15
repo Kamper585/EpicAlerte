@@ -1,13 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-//  ÉcoAubaine — app.js
-//
-//  ╔══════════════════════════════════════════════════════════════╗
-//  ║  CONFIGURATION FIREBASE — À FAIRE                           ║
-//  ╠══════════════════════════════════════════════════════════════╣
-//  ║  1. console.firebase.google.com → votre projet              ║
-//  ║  2. ⚙️ Paramètres → Vos applications → </> Web              ║
-//  ║  3. Copiez les 6 valeurs dans firebaseConfig ci-dessous     ║
-//  ╚══════════════════════════════════════════════════════════════╝
+//  ÉpicAlerte — app.js
 // ═══════════════════════════════════════════════════════════════
 
 import { initializeApp }
