@@ -1,4 +1,4 @@
-// ═══════════════════════════════════════════════════════════════
+ // ═══════════════════════════════════════════════════════════════
 //  ÉpicAlerte — app.js
 // ═══════════════════════════════════════════════════════════════
 
@@ -10,6 +10,8 @@ import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
 import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs,
          deleteDoc, query, orderBy, limit, serverTimestamp, writeBatch }
   from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+import { getMessaging, getToken, onMessage }
+  from "https://www.gstatic.com/firebasejs/11.0.0/firebase-messaging.js";
 
 // ── CONFIG — remplacez ces valeurs par les vôtres ──
 const firebaseConfig = {
@@ -22,9 +24,14 @@ const firebaseConfig = {
   measurementId: "G-VN39DL2N9V"
 };
 
-const app  = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db   = getFirestore(app);
+const app       = initializeApp(firebaseConfig);
+const auth      = getAuth(app);
+const db        = getFirestore(app);
+const messaging = getMessaging(app);
+
+// Votre VAPID key — à récupérer dans Firebase Console
+// → Paramètres du projet → Cloud Messaging → Web Push certificates → Generate key pair
+const VAPID_KEY = "BHn7uZlSrxDbjsUWCVbOJOdDCrjgO--dopXlVI8vc2a3MUgMqoV7onyLXTZEUJEVXyBF5kfxyCu1YCuHMuIlvAk";
 
 
 // ═══════════════════════════════════════════════════════════════
@@ -527,40 +534,67 @@ async function requestNotif() {
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
   if (isIOS && !window.navigator.standalone) {
     document.getElementById('ios-notice').classList.remove('hidden');
-    toast('Ajoutez d\'abord l\'app à l\'écran d\'accueil !', 'info');
+    toast('Ajoutez d'abord l'app à l'écran d'accueil via Safari !', 'info');
     return;
   }
-  if (!('Notification' in window)) { toast('Ce navigateur ne supporte pas les notifications.', 'error'); return; }
-  const perm = await Notification.requestPermission();
-  if (perm === 'granted') {
-    const btn = document.getElementById('notif-btn');
-    btn.innerHTML = '<i class="fas fa-check"></i> Alertes activées !';
-    btn.disabled  = true; btn.style.opacity = '.7';
-    toast('Notifications activées ! 🔔', 'success');
-    registerServiceWorker();
-  } else {
-    toast('Permission refusée.', 'error');
+  if (!('Notification' in window)) {
+    toast('Ce navigateur ne supporte pas les notifications.', 'error');
+    return;
   }
-}
 
-function registerServiceWorker() {
-  // PUSH INTEGRATION : branchez OneSignal ou FCM dans ce code
-  const swCode = `
-    self.addEventListener('push', e => {
-      const d = e.data ? e.data.json() : {};
-      self.registration.showNotification(d.title || 'ÉpicAlerte', {
-        body: d.body || 'Nouveau spécial !'
-      });
+  const btn = document.getElementById('notif-btn');
+  btn.innerHTML = '<span class="loader"></span> Activation...';
+  btn.disabled  = true;
+
+  try {
+    // 1. Enregistrer le Service Worker FCM
+    const swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    console.log('[FCM] Service Worker enregistré');
+
+    // 2. Demander la permission
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') {
+      toast('Permission refusée. Vérifiez les paramètres de votre navigateur.', 'error');
+      btn.innerHTML = '<i class="fas fa-bell"></i> Activer les alertes mobiles';
+      btn.disabled  = false;
+      return;
+    }
+
+    // 3. Obtenir le token FCM
+    const token = await getToken(messaging, {
+      vapidKey:                  VAPID_KEY,
+      serviceWorkerRegistration: swReg,
     });
-    self.addEventListener('notificationclick', e => {
-      e.notification.close();
-      clients.openWindow('/');
+
+    if (!token) {
+      toast('Impossible d'obtenir le token FCM. Réessayez.', 'error');
+      btn.innerHTML = '<i class="fas fa-bell"></i> Activer les alertes mobiles';
+      btn.disabled  = false;
+      return;
+    }
+
+    console.log('[FCM] Token:', token);
+
+    // 4. Sauvegarder le token dans Firestore
+    await setDoc(doc(db, 'users', currentUser.uid), { fcmToken: token }, { merge: true });
+
+    btn.innerHTML     = '<i class="fas fa-check"></i> Alertes activées !';
+    btn.disabled      = true;
+    btn.style.opacity = '.7';
+    toast('Notifications activées ! 🔔 Vous recevrez les alertes même quand l'app est fermée.', 'success');
+
+    // 5. Écouter les messages quand l'app est au premier plan
+    onMessage(messaging, (payload) => {
+      console.log('[FCM] Message reçu au premier plan:', payload);
+      toast(`🏷️ ${payload.notification?.title || 'Nouveau spécial !'}`, 'success');
     });
-  `;
-  const url = URL.createObjectURL(new Blob([swCode], { type: 'application/javascript' }));
-  navigator.serviceWorker.register(url)
-    .then(() => console.log('[SW] Enregistré'))
-    .catch(e  => console.warn('[SW] Erreur:', e));
+
+  } catch(e) {
+    console.error('[FCM] Erreur:', e);
+    toast('Erreur d'activation : ' + e.message, 'error');
+    btn.innerHTML = '<i class="fas fa-bell"></i> Activer les alertes mobiles';
+    btn.disabled  = false;
+  }
 }
 
 
