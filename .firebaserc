@@ -1,5 +1,7 @@
 {
   "projects": {
     "default": "projet-ecoaubaine"
-  }
+  },
+  "targets": {},
+  "etags": {}
 }

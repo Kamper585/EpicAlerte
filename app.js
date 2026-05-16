@@ -14,13 +14,14 @@ import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs,
 
 // ── CONFIG — remplacez ces valeurs par les vôtres ──
 const firebaseConfig = {
-  apiKey: "AIzaSyAIvFi-fcZ3iwwCKm0neN4jCzd4EMfOPdc",
-  authDomain: "authentication-dd396.firebaseapp.com",
-  projectId: "authentication-dd396",
-  storageBucket: "authentication-dd396.firebasestorage.app",
-  messagingSenderId: "360794880737",
-  appId: "1:360794880737:web:592f13790e0e318f8695a0",
-  measurementId: "G-VN39DL2N9V"
+  apiKey: "AIzaSyDCvyJnMiF80IFE9IKQKyKOFoiCre3sQY8",
+  authDomain: "projet-ecoaubaine.firebaseapp.com",
+  databaseURL: "https://projet-ecoaubaine-default-rtdb.firebaseio.com",
+  projectId: "projet-ecoaubaine",
+  storageBucket: "projet-ecoaubaine.firebasestorage.app",
+  messagingSenderId: "720715738287",
+  appId: "1:720715738287:web:37c8b4eedde97b6593f85a",
+  measurementId: "G-F7ZF6TJRRQ"
 };
 
 const app       = initializeApp(firebaseConfig);
