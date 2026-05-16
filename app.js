@@ -28,7 +28,7 @@ const app       = initializeApp(firebaseConfig);
 const auth      = getAuth(app);
 const db        = getFirestore(app);
 // Votre VAPID key — Firebase Console → Paramètres → Cloud Messaging → Web Push certificates
-const VAPID_KEY = "BHn7uZlSrxDbjsUWCVbOJOdDCrjgO--dopXlVI8vc2a3MUgMqoV7onyLXTZEUJEVXyBF5kfxyCu1YCuHMuIlvAk";
+const VAPID_KEY = "BAhPN_gsaUX1In_1gcOrAonMmBocDsz3NjYsNN_VaD3Q0cSEAUcwZJPyAc6h5xshDtZGG3IwTNdon2cz18W40mo";
 
 
 // ═══════════════════════════════════════════════════════════════
