@@ -644,6 +644,24 @@ function renderApp() {
   renderHistory();
   renderSettings();
   updateStats();
+  checkNotifStatus();
+}
+
+// Vérifie si les notifications sont déjà activées pour cet utilisateur
+async function checkNotifStatus() {
+  try {
+    const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+    if (userDoc.exists() && userDoc.data().fcmToken) {
+      const btn = document.getElementById('notif-btn');
+      if (btn) {
+        btn.innerHTML      = '<i class="fas fa-check"></i> Alertes activées !';
+        btn.disabled       = true;
+        btn.style.opacity  = '.7';
+      }
+    }
+  } catch(e) {
+    console.log('[FCM] Vérification statut notifications:', e.message);
+  }
 }
 
 
