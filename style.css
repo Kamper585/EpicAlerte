@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   ÉpicAlerte — style.css
+   ÉcoAubaine — style.css
    Thème : vert forêt + or doux, mode sombre
 ═══════════════════════════════════════════════════════════ */
 
@@ -525,4 +525,49 @@ footer a:hover { color: var(--text-dim); }
   /* Header : évite que les boutons débordent */
   .header-actions { gap: 8px; }
   .btn-sm { padding: 6px 10px; font-size: .78rem; }
+}
+
+/* ── CONTACT ── */
+.contact-intro {
+  max-width: 600px;
+  text-align: center;
+}
+.contact-intro-icon {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+}
+.contact-intro-title {
+  font-family: var(--font-head);
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+  letter-spacing: -.01em;
+}
+.contact-intro-text {
+  font-size: .9rem;
+  color: var(--text-dim);
+  line-height: 1.75;
+  margin-bottom: 20px;
+}
+.contact-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+.contact-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: .78rem;
+  font-weight: 500;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  transition: var(--tr);
+}
+.contact-chip:hover {
+  border-color: var(--green);
+  color: var(--green);
 }
