@@ -807,7 +807,7 @@ async function sendContactMessage() {
     succEl.classList.remove('hidden');
   } catch(e) {
     console.error('[Contact]', e);
-    errEl.textContent = 'Erreur lors de l'envoi. Réessayez.';
+    errEl.textContent = "Erreur lors de l'envoi. Réessayez.";
     errEl.classList.remove('hidden');
   } finally {
     btn.innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer le message';
