@@ -711,6 +711,25 @@ function fbErr(code) {
 
 document.getElementById('footer-year').textContent = new Date().getFullYear();
 
+// Lien Contact du footer — ancre vers #section-contact (pas de JS nécessaire)
+
+// Conditions d'utilisation
+document.getElementById('terms-link').addEventListener('click', e => {
+  e.preventDefault();
+  // Mettre la date du jour
+  document.getElementById('terms-date').textContent = new Date().toLocaleDateString('fr-CA', { year:'numeric', month:'long', day:'numeric' });
+  document.getElementById('terms-modal').classList.remove('hidden');
+});
+document.getElementById('terms-close-btn').addEventListener('click', () => {
+  document.getElementById('terms-modal').classList.add('hidden');
+});
+document.getElementById('terms-accept-btn').addEventListener('click', () => {
+  document.getElementById('terms-modal').classList.add('hidden');
+});
+document.getElementById('terms-modal').addEventListener('click', e => {
+  if (e.target.id === 'terms-modal') document.getElementById('terms-modal').classList.add('hidden');
+});
+
 // Modal
 document.getElementById('btn-open-login').addEventListener('click',    () => openModal('login'));
 document.getElementById('btn-open-signup').addEventListener('click',   () => openModal('signup'));
