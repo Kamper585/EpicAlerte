@@ -243,6 +243,9 @@
         <i class="fas fa-mobile-alt"></i> Alertes mobiles
       </button>
       <div class="sidebar-bottom">
+        <button class="nav-item" data-screen="contact">
+          <i class="fas fa-envelope"></i> Contact
+        </button>
         <button class="nav-item" data-screen="settings">
           <i class="fas fa-cog"></i> Paramètres
         </button>
@@ -442,6 +445,91 @@
             <button class="btn btn-danger" id="btn-delete-account">
               <i class="fas fa-trash-alt"></i> Supprimer mon compte
             </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CONTACT ── -->
+      <div class="screen" id="screen-contact">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Contact ✉️</div>
+            <div class="page-subtitle">On adore avoir de vos nouvelles</div>
+          </div>
+        </div>
+
+        <div class="contact-intro card" style="margin-bottom:24px">
+          <div class="contact-intro-icon">💬</div>
+          <h2 class="contact-intro-title">Parlons-nous !</h2>
+          <p class="contact-intro-text">
+            Vous avez des questions, des propositions de modifications ou d'ajout de fonctionnalités ?
+            Contactez-nous — il nous fera vraiment plaisir de vous lire. Chaque suggestion compte
+            et contribue à améliorer ÉpicAlerte pour toute la communauté.
+          </p>
+          <div class="contact-chips">
+            <span class="contact-chip">💡 Nouvelle fonctionnalité</span>
+            <span class="contact-chip">🐛 Signaler un bug</span>
+            <span class="contact-chip">🤝 Partenariat</span>
+            <span class="contact-chip">❓ Question générale</span>
+          </div>
+        </div>
+
+        <div class="card" style="max-width:600px">
+          <h3 style="font-family:var(--font-head);font-weight:700;margin-bottom:20px;font-size:1rem">
+            Envoyez-nous un message
+          </h3>
+          <div class="form-group">
+            <label>Sujet</label>
+            <select id="contact-subject">
+              <option value="">Choisissez un sujet...</option>
+              <option value="feature">💡 Proposition de fonctionnalité</option>
+              <option value="bug">🐛 Signaler un bug</option>
+              <option value="question">❓ Question générale</option>
+              <option value="partnership">🤝 Partenariat</option>
+              <option value="other">📝 Autre</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Message</label>
+            <textarea id="contact-message"
+              placeholder="Décrivez votre demande, suggestion ou question en détail..."
+              rows="6"
+              style="width:100%;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font-body);font-size:.9rem;resize:vertical;outline:none;transition:var(--tr)"
+            ></textarea>
+          </div>
+          <div id="contact-error" class="error-msg hidden"></div>
+          <div id="contact-success" class="hidden"
+               style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:var(--radius-sm);padding:14px;color:var(--green);font-size:.88rem;margin-bottom:16px">
+            <i class="fas fa-check-circle"></i> Votre message a été envoyé ! On vous répond dans les plus brefs délais.
+          </div>
+          <button class="btn btn-primary" id="btn-send-contact" style="width:100%">
+            <i class="fas fa-paper-plane"></i> Envoyer le message
+          </button>
+        </div>
+
+        <div class="card" style="max-width:600px;margin-top:16px">
+          <h3 style="font-family:var(--font-head);font-weight:700;margin-bottom:16px;font-size:1rem">
+            📬 Autres façons de nous rejoindre
+          </h3>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;gap:12px;font-size:.88rem;color:var(--text-dim)">
+              <div style="width:36px;height:36px;border-radius:50%;background:rgba(34,197,94,.1);color:var(--green);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <i class="fas fa-envelope"></i>
+              </div>
+              <div>
+                <div style="font-weight:500;color:var(--text)">Courriel</div>
+                <div>kamper585@hotmail.com</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;font-size:.88rem;color:var(--text-dim)">
+              <div style="width:36px;height:36px;border-radius:50%;background:rgba(34,197,94,.1);color:var(--green);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <i class="fas fa-clock"></i>
+              </div>
+              <div>
+                <div style="font-weight:500;color:var(--text)">Délai de réponse</div>
+                <div>Généralement sous 24 à 48 heures</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
