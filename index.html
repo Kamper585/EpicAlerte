@@ -105,7 +105,7 @@
         <button class="btn btn-primary btn-lg" style="width:100%" id="signup-submit-btn">Créer mon compte</button>
       </div>
       <div class="form-footer">
-        En créant un compte, vous acceptez nos <a href="#">conditions d'utilisation</a>.
+        En créant un compte, vous acceptez nos <a href="#" id="terms-link">conditions d'utilisation</a>.
       </div>
     </div>
   </div>
@@ -193,10 +193,71 @@
     </button>
   </div>
 
+  <!-- SECTION CONTACT PUBLIQUE -->
+  <div id="section-contact" class="section" style="max-width:680px;margin:0 auto;padding:80px 24px">
+    <div class="section-label">On est là pour vous</div>
+    <h2 style="font-family:var(--font-head);font-size:clamp(1.8rem,4vw,2.4rem);font-weight:800;text-align:center;margin-bottom:12px;letter-spacing:-.02em">
+      Contactez-nous 💬
+    </h2>
+    <p style="text-align:center;color:var(--text-dim);font-size:.95rem;margin-bottom:36px;line-height:1.7">
+      Vous avez des questions, des propositions de modifications ou d'ajout de fonctionnalités ?
+      Contactez-nous — il nous fera vraiment plaisir de vous lire.
+    </p>
+
+    <!-- Formspree — remplacez YOUR_FORM_ID par votre ID Formspree (gratuit sur formspree.io) -->
+    <form id="public-contact-form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST"
+          style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;display:flex;flex-direction:column;gap:16px">
+
+      <div class="form-group" style="margin-bottom:0">
+        <label>Votre nom</label>
+        <input type="text" name="name" placeholder="Jean Tremblay" required/>
+      </div>
+
+      <div class="form-group" style="margin-bottom:0">
+        <label>Votre courriel</label>
+        <input type="email" name="email" placeholder="vous@exemple.com" required/>
+      </div>
+
+      <div class="form-group" style="margin-bottom:0">
+        <label>Sujet</label>
+        <select name="subject" required
+                style="width:100%;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font-body);font-size:.9rem;outline:none">
+          <option value="">Choisissez un sujet...</option>
+          <option value="question">❓ Question générale</option>
+          <option value="feature">💡 Proposition de fonctionnalité</option>
+          <option value="bug">🐛 Signaler un bug</option>
+          <option value="partnership">🤝 Partenariat</option>
+          <option value="other">📝 Autre</option>
+        </select>
+      </div>
+
+      <div class="form-group" style="margin-bottom:0">
+        <label>Message</label>
+        <textarea name="message" rows="5" required
+          placeholder="Décrivez votre question ou suggestion..."
+          style="width:100%;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font-body);font-size:.9rem;resize:vertical;outline:none;transition:var(--tr)"
+        ></textarea>
+      </div>
+
+      <div id="contact-public-success" class="hidden"
+           style="background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:var(--radius-sm);padding:14px;color:var(--green);font-size:.88rem">
+        <i class="fas fa-check-circle"></i> Message envoyé ! On vous répond sous 24-48 heures.
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-lg" style="width:100%">
+        <i class="fas fa-paper-plane"></i> Envoyer le message
+      </button>
+
+      <p style="text-align:center;font-size:.78rem;color:var(--text-mute)">
+        Ou écrivez-nous directement à <a href="mailto:support@epicalerte.ca" style="color:var(--green);text-decoration:none">support@epicalerte.ca</a>
+      </p>
+    </form>
+  </div>
+
   <footer>
     <p style="margin-bottom:12px">
       <a href="#">Mentions légales</a>
-      <a href="#">Contact</a>
+      <a href="#section-contact">Contact</a>
       <a href="#">À propos</a>
     </p>
     <p>© <span id="footer-year"></span> ÉpicAlerte — Fait avec 💚 au Québec</p>
@@ -518,7 +579,7 @@
               </div>
               <div>
                 <div style="font-weight:500;color:var(--text)">Courriel</div>
-                <div>kamper585@hotmail.com</div>
+                <div>support@epicalerte.ca</div>
               </div>
             </div>
             <div style="display:flex;align-items:center;gap:12px;font-size:.88rem;color:var(--text-dim)">
@@ -535,6 +596,77 @@
       </div>
 
     </main>
+  </div>
+</div>
+
+<!-- ══ MODALE CONDITIONS D'UTILISATION ══ -->
+<div class="modal-overlay hidden" id="terms-modal">
+  <div class="modal" style="max-width:600px;max-height:85vh;overflow-y:auto">
+    <div class="modal-header" style="position:sticky;top:0;background:var(--bg2);z-index:1;padding-bottom:16px">
+      <div class="modal-title">📋 Conditions d'utilisation</div>
+      <button class="modal-close" id="terms-close-btn"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div style="font-size:.88rem;color:var(--text-dim);line-height:1.8;display:flex;flex-direction:column;gap:20px">
+
+      <p style="color:var(--text-mute);font-size:.8rem">Dernière mise à jour : <span id="terms-date"></span></p>
+
+      <div>
+        <h3 style="font-family:var(--font-head);font-weight:700;color:var(--text);margin-bottom:8px;font-size:.95rem">1. Acceptation des conditions</h3>
+        <p>En créant un compte sur ÉpicAlerte, vous acceptez les présentes conditions d'utilisation dans leur intégralité. Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser notre service.</p>
+      </div>
+
+      <div>
+        <h3 style="font-family:var(--font-head);font-weight:700;color:var(--text);margin-bottom:8px;font-size:.95rem">2. Description du service</h3>
+        <p>ÉpicAlerte est une application gratuite permettant aux utilisateurs de suivre les prix de produits d'épicerie et de recevoir des alertes lorsque ces produits sont en spécial dans leurs magasins préférés. Le service est fourni à titre informatif uniquement.</p>
+      </div>
+
+      <div>
+        <h3 style="font-family:var(--font-head);font-weight:700;color:var(--text);margin-bottom:8px;font-size:.95rem">3. Compte utilisateur</h3>
+        <p>Vous êtes responsable de maintenir la confidentialité de vos identifiants de connexion. Vous acceptez de nous notifier immédiatement de toute utilisation non autorisée de votre compte. ÉpicAlerte ne peut être tenu responsable des pertes résultant d'un accès non autorisé à votre compte.</p>
+      </div>
+
+      <div>
+        <h3 style="font-family:var(--font-head);font-weight:700;color:var(--text);margin-bottom:8px;font-size:.95rem">4. Données personnelles</h3>
+        <p>Nous collectons uniquement les données nécessaires au fonctionnement du service : votre adresse courriel, votre liste de produits suivis et vos magasins préférés. Ces données sont stockées de manière sécurisée et ne sont jamais vendues à des tiers. Vous pouvez supprimer votre compte et toutes vos données à tout moment depuis les paramètres de l'application.</p>
+      </div>
+
+      <div>
+        <h3 style="font-family:var(--font-head);font-weight:700;color:var(--text);margin-bottom:8px;font-size:.95rem">5. Notifications push</h3>
+        <p>En activant les alertes mobiles, vous consentez à recevoir des notifications push sur votre appareil. Vous pouvez désactiver ces notifications à tout moment depuis les paramètres de votre navigateur ou de votre système d'exploitation.</p>
+      </div>
+
+      <div>
+        <h3 style="font-family:var(--font-head);font-weight:700;color:var(--text);margin-bottom:8px;font-size:.95rem">6. Exactitude des informations</h3>
+        <p>Les prix et disponibilités affichés dans ÉpicAlerte sont fournis à titre indicatif. Nous ne garantissons pas l'exactitude, l'exhaustivité ou la disponibilité en temps réel des informations. Vérifiez toujours les prix directement en magasin.</p>
+      </div>
+
+      <div>
+        <h3 style="font-family:var(--font-head);font-weight:700;color:var(--text);margin-bottom:8px;font-size:.95rem">7. Utilisation acceptable</h3>
+        <p>Vous vous engagez à utiliser ÉpicAlerte uniquement à des fins personnelles et légales. Il est interdit d'utiliser le service pour collecter des données de manière automatisée, de tenter de compromettre la sécurité de l'application, ou d'utiliser le service d'une manière qui pourrait nuire à d'autres utilisateurs.</p>
+      </div>
+
+      <div>
+        <h3 style="font-family:var(--font-head);font-weight:700;color:var(--text);margin-bottom:8px;font-size:.95rem">8. Limitation de responsabilité</h3>
+        <p>ÉpicAlerte est fourni "tel quel" sans garantie d'aucune sorte. Nous ne sommes pas responsables des décisions d'achat prises sur la base des informations fournies par l'application.</p>
+      </div>
+
+      <div>
+        <h3 style="font-family:var(--font-head);font-weight:700;color:var(--text);margin-bottom:8px;font-size:.95rem">9. Modifications</h3>
+        <p>Nous nous réservons le droit de modifier ces conditions à tout moment. Les modifications entrent en vigueur dès leur publication. L'utilisation continue du service après modification constitue votre acceptation des nouvelles conditions.</p>
+      </div>
+
+      <div>
+        <h3 style="font-family:var(--font-head);font-weight:700;color:var(--text);margin-bottom:8px;font-size:.95rem">10. Contact</h3>
+        <p>Pour toute question concernant ces conditions d'utilisation, contactez-nous à <a href="mailto:support@epicalerte.ca" style="color:var(--green);text-decoration:none">support@epicalerte.ca</a>.</p>
+      </div>
+
+      <div style="margin-top:8px">
+        <button class="btn btn-primary btn-lg" style="width:100%" id="terms-accept-btn">
+          <i class="fas fa-check"></i> J'accepte les conditions
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 
