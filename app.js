@@ -773,3 +773,44 @@ document.addEventListener('click', e => {
   const toggle = e.target.closest('.store-toggle');
   if (toggle) toggle.classList.toggle('selected');
 });
+
+// Contact
+document.getElementById('btn-send-contact').addEventListener('click', sendContactMessage);
+
+async function sendContactMessage() {
+  const subject = document.getElementById('contact-subject').value;
+  const message = document.getElementById('contact-message').value.trim();
+  const errEl   = document.getElementById('contact-error');
+  const succEl  = document.getElementById('contact-success');
+  const btn     = document.getElementById('btn-send-contact');
+
+  errEl.classList.add('hidden');
+  succEl.classList.add('hidden');
+
+  if (!subject) { errEl.textContent = 'Choisissez un sujet.'; errEl.classList.remove('hidden'); return; }
+  if (!message || message.length < 10) { errEl.textContent = 'Votre message doit contenir au moins 10 caractères.'; errEl.classList.remove('hidden'); return; }
+
+  btn.innerHTML = '<span class="loader"></span> Envoi...'; btn.disabled = true;
+
+  try {
+    await addDoc(collection(db, 'messages'), {
+      userId:    currentUser.uid,
+      email:     currentUser.email,
+      subject,
+      message,
+      date:      serverTimestamp(),
+      read:      false
+    });
+
+    document.getElementById('contact-subject').value  = '';
+    document.getElementById('contact-message').value  = '';
+    succEl.classList.remove('hidden');
+  } catch(e) {
+    console.error('[Contact]', e);
+    errEl.textContent = 'Erreur lors de l'envoi. Réessayez.';
+    errEl.classList.remove('hidden');
+  } finally {
+    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer le message';
+    btn.disabled  = false;
+  }
+}
